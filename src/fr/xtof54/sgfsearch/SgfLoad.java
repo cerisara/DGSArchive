@@ -4,7 +4,11 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.StringBufferInputStream;
 import java.util.zip.GZIPInputStream;
 
 import org.kamranzafar.jtar.TarEntry;
@@ -30,6 +34,41 @@ public class SgfLoad {
 			}
 	}
 
+	static public interface SgfParser {
+		public void parse(String sgf);
+	}
+	static void parseDGSarchive(SgfParser parser) {
+		try {
+			GZIPInputStream f = new GZIPInputStream(new FileInputStream("/home/xtof/dgsArchive.tgz"));
+			TarInputStream tf = new TarInputStream(f);
+			TarEntry entry;
+			int count;
+			int n=0;
+			byte data[] = new byte[1000000];
+			String cursgf="";
+			String prevnom="";
+			while((entry = tf.getNextEntry()) != null) {
+				String nom=entry.getName();
+				if (nom.equals(prevnom)) {
+				} else {
+					if (cursgf.length()>0) {
+						parser.parse(cursgf);
+						++n;
+					}
+					prevnom=nom;
+					cursgf="";
+				}
+				while((count = tf.read(data)) != -1) {
+					cursgf+=new String(data,0,count);
+				}
+			}
+			tf.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	// test de la decompression de l'archive DGS
 	static void test2() throws Exception {
 		GZIPInputStream f = new GZIPInputStream(new FileInputStream("/home/xtof/dgsArchive.tgz"));
 		TarInputStream tf = new TarInputStream(f);
@@ -37,27 +76,32 @@ public class SgfLoad {
 		int count;
 		int n=0;
 		byte data[] = new byte[1000000];
+		String cursgf="";
+		String prevnom="";
 		while((entry = tf.getNextEntry()) != null) {
 			String nom=entry.getName();
+			if (nom.equals(prevnom)) {
+			} else {
+				if (cursgf.length()>0) {
+					// save prev data
+					PrintWriter fo = new PrintWriter(new FileWriter("/tmp/tt"+n+".sgf"));
+					fo.println(nom);
+					fo.println(cursgf);
+					fo.close();
+					++n;
+					if (n>=10) System.exit(1);
+				}
+				prevnom=nom;
+				cursgf="";
+			}
 			while((count = tf.read(data)) != -1) {
-				String sgf=new String(data,0,count);
-				System.out.println("loaded "+nom+" .. "+sgf);
-// attention: une entree ne termine pas forcement un fichier.
-				// il faut plusieurs entrees, mais le nom est le meme
-				// par contre, je ne sais pas si on peut avoir plusieurs fichiers
-				// dans une entree
-				PrintWriter fo = new PrintWriter(new FileWriter("/tmp/tt"+n));
-				fo.println(nom);
-				fo.println(sgf);
-				fo.close();
-				
-				++n;
-if (n>=2) System.exit(1);
+				cursgf+=new String(data,0,count);
 			}
 		}
 		tf.close();
 	}
 
+	// test du loading d'un unique SGF
 	public static void test1(String args[]) throws Exception {
 		load("/home/xtof/simple.sgf");
 		int i=0;
@@ -70,7 +114,34 @@ if (n>=2) System.exit(1);
 		}
 	}
 
+	// test: compte du nb de coups total joue
+	// il faut 10' sur un portable
+	// il y a 777,080 parties et 121,401,553 de coups 
+	static void test3() {
+		long tdeb = System.currentTimeMillis();
+		class Compteur implements SgfParser {
+			long nmv=0, ngames=0;
+			@Override
+			public void parse(final String sgf) {
+				GoFrame bi = new GoFrame("toto");
+				goban = new Board(19, bi);
+				BufferedReader f = new BufferedReader(new InputStreamReader(new StringBufferInputStream(sgf)));
+				try {
+					goban.load(f);
+					while (goban.goforward()) nmv++;
+					ngames++;
+					System.out.println("nmoves "+ngames+" "+nmv);
+					f.close();
+				} catch (IOException e) {e.printStackTrace();}
+			}
+		}
+		Compteur c = new Compteur();
+		parseDGSarchive(c);
+		long tfin = System.currentTimeMillis();
+		System.out.println("timediff "+tdeb+" "+tfin);
+	}
+	
 	public static void main(String args[]) throws Exception {
-		test2();
+		test3();
 	}
 }

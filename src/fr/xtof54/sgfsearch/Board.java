@@ -1078,13 +1078,14 @@ public class Board
 		setlast();
 	}
 
-	public void goforward ()
+	public boolean goforward ()
 	// go one move forward
 	{
-		if ( !Pos.haschildren()) return;
+		if ( !Pos.haschildren()) return false;
 		Pos = Pos.firstChild();
 		setnode();
 		setlast();
+		return true;
 	}
 
 	public void gotoMove (int move)
