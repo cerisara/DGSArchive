@@ -9,10 +9,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringBufferInputStream;
+import java.util.ArrayList;
 import java.util.zip.GZIPInputStream;
 
 import org.kamranzafar.jtar.TarEntry;
 import org.kamranzafar.jtar.TarInputStream;
+
+import fr.xtof54.Histoplot;
 
 public class SgfLoad {
 	static Board goban;
@@ -141,7 +144,42 @@ public class SgfLoad {
 		System.out.println("timediff "+tdeb+" "+tfin);
 	}
 	
+	// prints the results
+	/*
+	 * Game ends: 18% on time, 36% resign, 46% agreement
+	 * amongst resigns: 46% B resigns, 54% W resigns
+	 * amongst time: 52.6% W wins, 47.4% B wins
+	 * 48.8% B wins, 51.0% W wins, 0.2% draw
+	 */
+	static void test4() {
+		final ArrayList<Float> scores = new ArrayList<Float>();
+		class Printer implements SgfParser {
+			public void parse(final String sgf) {
+				int i=sgf.indexOf("Result:");
+				if (i<0) System.out.println("noresult");
+				else {
+					int j=sgf.indexOf(']',i);
+					if (j<0) j=sgf.length();
+					String r = sgf.substring(i+7, j);
+					if (r.contains("Resign")) {
+					} else if (r.contains("Draw")) {
+					} else if (r.contains("Time")) {
+					} else {
+						i=r.indexOf('+');
+						float sc = Float.parseFloat(r.substring(i+1));
+						scores.add(sc);
+					}
+				}
+			}
+		}
+		parseDGSarchive(new Printer());
+		float[] sc = new float[scores.size()];
+		for (int i=0;i<sc.length;i++) sc[i]=scores.get(i);
+		Histoplot.showit(sc);
+	}
+	
 	public static void main(String args[]) throws Exception {
-		test3();
+//		test3();
+		test4();
 	}
 }

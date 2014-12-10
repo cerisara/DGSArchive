@@ -1,0 +1,78 @@
+
+<project name="DGSArchive" default="compile" basedir=".">
+    <description>Builds, tests, and runs</description>
+
+    <property name="src" location="src"/>
+    <property name="build" location="build"/>
+    <property name="dist"  location="dist"/>
+    <property name="libs"  location="lib"/>
+    <property name="version" value="1.0"/>
+
+    <path id="classpath">
+	<pathelement location="${libs}/jtar-2.2.jar"/>
+	<pathelement location="${libs}/jfreechart-1.0.17.jar"/>
+	<pathelement location="${libs}/jcommon-1.0.21.jar"/>
+    </path>
+    <path id="run.classpath">
+	<path refid="classpath"/>
+	<pathelement path="${build}"/>
+    </path>
+	
+    <target name="init">
+        <mkdir dir="${build}"/>
+        <mkdir dir="${dist}"/>
+	<mkdir dir="etc"/>
+	<mkdir dir="reports"/>
+    </target>
+
+    <target name="compile" depends="init" description="compile the source " >
+        <echo message="JVM - ${ant.java.version}" />
+        <javac debug="true" srcdir="${src}" destdir="${build}" encoding="UTF-8">
+    	    <classpath refid="classpath" />
+        </javac>
+    </target>
+
+    <target name="jar" depends="compile" description="generate the distribution" >
+	<manifest file="MANIFEST.MF">
+		<attribute name="Class-Path" value=""/>
+		<attribute name="Main-Class" value="fr.xtof54.sgfsearch.SgfLoad"/>
+	</manifest>
+	<jar destfile="out.jar" basedir="bin" manifest="MANIFEST.MF"/>
+    </target>
+
+    <target name="run" depends="compile" description="run" >
+	<java classname="fr.xtof54.sgfsearch.SgfLoad"
+	   fork="true"
+           failonerror="true"
+           maxmemory="1g">
+           <arg value="toto"/>
+	   <classpath refid="run.classpath" />
+       </java>
+    </target>
+
+    <target name="clean" description="clean up" >
+	<!-- Delete the ${build} and ${dist} directory trees -->
+        <delete dir="${build}"/>
+        <delete dir="${dist}"/>
+    </target>
+
+<target name="test" depends="compile">
+  <junit fork="yes" haltonfailure="yes" printsummary="withOutAndErr">
+    <batchtest fork="yes" todir="reports" >
+      <fileset dir="${build}">
+        <include name="**/*Test.class" />
+      </fileset>
+    </batchtest>
+    <formatter type="xml" />
+    <classpath refid="run.classpath" />
+  </junit>
+ <junitreport todir="reports">
+    <fileset dir="reports">
+      <include name="TEST-*.xml" />
+    </fileset>
+    <report todir="reports" />
+  </junitreport>
+</target>
+
+</project>
+
