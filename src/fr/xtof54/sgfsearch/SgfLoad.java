@@ -15,8 +15,6 @@ import java.util.zip.GZIPInputStream;
 import org.kamranzafar.jtar.TarEntry;
 import org.kamranzafar.jtar.TarInputStream;
 
-import fr.xtof54.Histoplot;
-
 public class SgfLoad {
 	static Board goban;
 
