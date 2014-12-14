@@ -1,7 +1,10 @@
 DGSArchive
 ==========
 
-Barebone code to analyse the games in the Dragon Go Server (DGS) archive
+Barebone code to analyse the games in the Dragon Go Server (DGS) archive.
+See [DGS forum thread](http://www.dragongoserver.net/forum/read.php?forum=4&thread=39569#41889) for details.
+
+This code is based on excerpts of the Jago client open source code.
 
 This java program basically:
 *  parses a single ZIP file that contains the DGS archive.
