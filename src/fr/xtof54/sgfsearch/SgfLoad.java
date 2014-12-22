@@ -9,7 +9,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringBufferInputStream;
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
 import org.kamranzafar.jtar.TarEntry;
@@ -175,9 +181,75 @@ public class SgfLoad {
 		for (int i=0;i<sc.length;i++) sc[i]=scores.get(i);
 		Histoplot.showit(sc);
 	}
-	
+
+	static void test5() {
+		final int[] sum = new int[2015-2000];
+		final int[] nb = new int[sum.length];
+		class Printer implements SgfParser {
+			int year, month, day;
+			int elo=-1;
+			public Printer() {
+				Arrays.fill(nb,0);
+			}
+			public void parse(final String sgf) {
+				int i=sgf.indexOf("DT[");
+				if (i>=0) {
+					int ii=sgf.indexOf(']',i);
+					int j=sgf.lastIndexOf(',',ii);
+					int k=sgf.lastIndexOf('[',ii);
+					if (k>j) j=k;
+					if (j>=0) {
+						Pattern p = Pattern.compile("(20\\d\\d)-(\\d\\d)-(\\d\\d)");
+						Matcher m = p.matcher(sgf.substring(j+1, ii));
+						if (m.matches()) {
+							year = Integer.parseInt(m.group(1));
+//							month = Integer.parseInt(m.group(2));
+//							day = Integer.parseInt(m.group(3));
+						}
+					}
+				}
+				i=sgf.indexOf("White Start Rating:");
+				if (i>=0) {
+					int j=sgf.indexOf(" ELO ",i);
+					if (j>=0) {
+						int k=sgf.indexOf('\n',j+5);
+						int kk=sgf.indexOf(']',j+5);
+						if (kk>=0&&kk<k) k=kk;
+//						int ee=j+70>=sgf.length()?sgf.length():j+70;
+//						System.out.println("dbug "+ee+" "+sgf.length()+" "+i+" "+j);
+//						System.out.println("dbug "+ee+" "+sgf.length()+" "+sgf.substring(i,ee));
+						elo = Integer.parseInt(sgf.substring(j+5,k));
+						i=year-2000;
+						sum[i]+=elo;
+						nb[i]++;
+					}
+				}
+				i=sgf.indexOf("Black Start Rating:");
+				if (i>=0) {
+					int j=sgf.indexOf(" ELO ",i);
+					if (j>=0) {
+						int k=sgf.indexOf('\n',j+5);
+						int kk=sgf.indexOf(']',j+5);
+						if (kk>=0&&kk<k) k=kk;
+						elo = Integer.parseInt(sgf.substring(j+5,k));
+						i=year-2000;
+						sum[i]+=elo;
+						nb[i]++;
+					}
+				}
+			}
+		}
+		parseDGSarchive(new Printer());
+		for (int i=0;i<sum.length;i++) {
+			if (nb[i]>0) {
+				float e = (float)sum[i]/(float)nb[i];
+				System.out.println((2000+i)+" "+e);
+			}
+		}
+	}
+
 	public static void main(String args[]) throws Exception {
 //		test3();
-		test4();
+		test5();
 	}
 }
