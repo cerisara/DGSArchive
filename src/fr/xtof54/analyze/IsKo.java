@@ -24,10 +24,14 @@ import fr.xtof54.sgfsearch.SgfLoad.SgfParser;
 public class IsKo implements SgfParser {
 
 	class MoveBuffer {
-		int[][] moveBuffer = new int[3][3];
+		int[][] moveBuffer = new int[3][7];
 		int posbuf=0;
 		
-		public void addmove(int[] m) {
+		public void addmove(int[] m, int[] neighb) {
+			moveBuffer[posbuf][3]=neighb[0];
+			moveBuffer[posbuf][4]=neighb[1];
+			moveBuffer[posbuf][5]=neighb[2];
+			moveBuffer[posbuf][6]=neighb[3];
 			moveBuffer[posbuf][0]=m[0];
 			moveBuffer[posbuf][1]=m[1];
 			moveBuffer[posbuf++][2]=m[2];
@@ -36,7 +40,11 @@ public class IsKo implements SgfParser {
 		public boolean isko() {
 			if (moveBuffer[0][1]>=0&&moveBuffer[0][0]==moveBuffer[2][0] &&
 					moveBuffer[0][1]==moveBuffer[2][1] &&
-							moveBuffer[0][2]==moveBuffer[2][2]) {
+							moveBuffer[0][2]==moveBuffer[2][2] &&
+									moveBuffer[0][3]==moveBuffer[2][3] &&
+											moveBuffer[0][4]==moveBuffer[2][4] &&
+													moveBuffer[0][5]==moveBuffer[2][5] &&
+															moveBuffer[0][6]==moveBuffer[2][6]) {
 				System.out.println("ko found "+Arrays.toString(moveBuffer[0]));
 				return true;
 			}
@@ -214,22 +222,45 @@ public class IsKo implements SgfParser {
 		try {
 			nlocmv=0;
 			goban.load(f);
+			if (goban.getboardsize()>19) return;
 			buf = new MoveBuffer();
+			// pass 2 premiers moves
 			if (goban.goforward()) {
 				int[] mv = goban.showNextMove();
-				if (mv!=null) buf.addmove(mv);
+				if (mv!=null) {
+					int[] neighb = {mv[1]>0?goban.P.color(mv[1]-1, mv[2]):-1,
+							mv[2]>0?goban.P.color(mv[1], mv[2]-1):-1,
+									mv[1]>=0&&mv[1]<goban.getboardsize()-1?goban.P.color(mv[1]+1, mv[2]):-1,
+											mv[2]>=0&&mv[2]<goban.getboardsize()-1?goban.P.color(mv[1], mv[2]+1):-1};
+					buf.addmove(mv,neighb);
+					nlocmv++;
+				}
 				if (goban.goforward()) {
 					mv = goban.showNextMove();
-					if (mv!=null) buf.addmove(mv);
+					if (mv!=null) {
+						int[] neighb = {mv[1]>0?goban.P.color(mv[1]-1, mv[2]):-1,
+								mv[2]>0?goban.P.color(mv[1], mv[2]-1):-1,
+										mv[1]>=0&&mv[1]<goban.getboardsize()-1?goban.P.color(mv[1]+1, mv[2]):-1,
+												mv[2]>=0&&mv[2]<goban.getboardsize()-1?goban.P.color(mv[1], mv[2]+1):-1};
+						buf.addmove(mv,neighb);
+						nlocmv++;
+					}
 				}
 			}
 			while (goban.goforward()) {
 				int[] mv = goban.showNextMove();
 				if (mv!=null) {
-					buf.addmove(mv);
+					if (mv[1]>=goban.getboardsize() ||mv[2]>=goban.getboardsize()) {
+						// BUG dans le fichier SGF
+						break;
+					}
+					int[] neighb = {mv[1]>0?goban.P.color(mv[1]-1, mv[2]):-1,
+							mv[2]>0?goban.P.color(mv[1], mv[2]-1):-1,
+									mv[1]>=0&&mv[1]<goban.getboardsize()-1?goban.P.color(mv[1]+1, mv[2]):-1,
+											mv[2]>=0&&mv[2]<goban.getboardsize()-1?goban.P.color(mv[1], mv[2]+1):-1};
+					buf.addmove(mv,neighb);
 					if (buf.isko()) {
-//						System.out.println("sgf "+sgf);
-						System.out.println("goban loaded "+goban.getboardsize());
+						System.out.println(sgf);
 						tolatexBig();
 						nko++;
 					}
