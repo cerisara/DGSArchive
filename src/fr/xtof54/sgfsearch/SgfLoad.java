@@ -44,7 +44,7 @@ public class SgfLoad {
 	static public interface SgfParser {
 		public void parse(String sgf);
 	}
-	static void parseDGSarchive(SgfParser parser) {
+	public static void parseDGSarchive(SgfParser parser) {
 		try {
 			GZIPInputStream f = new GZIPInputStream(new FileInputStream("/home/xtof/dgsArchive.tgz"));
 			TarInputStream tf = new TarInputStream(f);
@@ -109,7 +109,7 @@ public class SgfLoad {
 	}
 
 	// test du loading d'un unique SGF
-	public static void test1(String args[]) throws Exception {
+	public static void test1() throws Exception {
 		load("/home/xtof/simple.sgf");
 		int i=0;
 		try {
@@ -250,6 +250,7 @@ public class SgfLoad {
 
 	public static void main(String args[]) throws Exception {
 //		test3();
-		test5();
+//		test5();
+//		test1();
 	}
 }

@@ -47,7 +47,7 @@ public class Position
 	}
 
 	// Interface routines to set or ask a field:
-	int color (int i, int j)
+	public int color (int i, int j)
 	{	return F[i][j].color();
 	}
 	void color (int i, int j, int c)

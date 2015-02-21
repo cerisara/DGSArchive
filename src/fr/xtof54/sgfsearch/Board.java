@@ -38,7 +38,7 @@ public class Board
 	SGFTree T; // the game tree
 	Vector Trees; // the game trees (one of them is T)
 	int CurrentTree; // the currently displayed tree
-	Position P; // current board position
+	public Position P; // current board position
 	int number; // number of the next move
 	TreeNode Pos; // the current board position in this presentation
 	int State; // states: 1 is black, 2 is white, 3 is set black etc.
@@ -827,7 +827,7 @@ public class Board
 			la = la.next();
 		}
 		String s = GF.getComment();
-		if ( !s.equals(""))
+		if ( s!=null&&!s.equals(""))
 		{
 			Pos.addaction(new Action("C", s));
 		}
@@ -1078,6 +1078,43 @@ public class Board
 		setlast();
 	}
 
+	public int[] showNextMove() {
+		if ( !Pos.haschildren()) {
+//			System.out.println("no child");
+			return null;
+		}
+		TreeNode tmp = Pos.firstChild();
+		Node n = tmp.node();
+		ListElement p = n.actions();
+		if (p == null) {
+//			System.out.println("no action");
+			return null;
+		}
+		while (p != null)
+		{
+			Action a = (Action)p.content();
+			if (a.type().equals("B"))
+			{
+				String s = (String)a.arguments().content();
+				int i = Field.i(s);
+				int j = Field.j(s);
+				int[] res = {0,i,j};
+				return res;
+			}
+			else if (a.type().equals("W"))
+			{
+				String s = (String)a.arguments().content();
+				int i = Field.i(s);
+				int j = Field.j(s);
+				int[] res = {1,i,j};
+				return res;
+			}
+			p = p.next();
+		}
+//		System.out.println("no move");
+		return null;
+	}
+	
 	public boolean goforward ()
 	// go one move forward
 	{
@@ -1887,6 +1924,12 @@ public class Board
 		return T.top().getaction("KM");
 	}
 
+	public String getHandi() {
+		Node n = T.top().node();
+		String s=n.getaction("HA");
+		return s;
+	}
+	
 	public String extraInformation ()
 	// get a mixture from handicap, komi and prisoners
 	{
