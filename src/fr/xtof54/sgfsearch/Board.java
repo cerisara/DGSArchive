@@ -1098,7 +1098,7 @@ public class Board
 				String s = (String)a.arguments().content();
 				int i = Field.i(s);
 				int j = Field.j(s);
-				int[] res = {0,i,j};
+				int[] res = {1,i,j};
 				return res;
 			}
 			else if (a.type().equals("W"))
@@ -1106,7 +1106,7 @@ public class Board
 				String s = (String)a.arguments().content();
 				int i = Field.i(s);
 				int j = Field.j(s);
-				int[] res = {1,i,j};
+				int[] res = {-1,i,j};
 				return res;
 			}
 			p = p.next();

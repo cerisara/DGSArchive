@@ -249,7 +249,7 @@ public class SgfLoad {
 	}
 
 	public static void main(String args[]) throws Exception {
-//		test3();
+		test3();
 //		test5();
 //		test1();
 	}
